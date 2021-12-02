@@ -10,11 +10,11 @@ fun main() {
     }
 
     // test if implementation meets criteria from the description, like:
-    val testInput = readInput("Day02_test")
+    val testInput = readInput("Day21_test")
     check(part1(testInput) == TODO())
     check(part2(testInput) == TODO())
 
-    val input = readInput("Day02")
+    val input = readInput("Day21")
     println(part1(input))
     println(part2(input))
 }
