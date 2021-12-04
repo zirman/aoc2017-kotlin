@@ -1,11 +1,5 @@
 import kotlin.collections.List
 
-sealed class Foo {
-    data class S(val i: Int) : Foo()
-    data class X(val x: Int, val y: Int) : Foo()
-    data class P(val x: Char, val y: Char) : Foo()
-}
-
 fun main() {
     fun part1(initial: String, input: List<String>): String {
         val commands = input.flatMap { list -> list.split(Regex(""",\s*""")) }
@@ -16,18 +10,18 @@ fun main() {
             Regex("""s(\d+)""")
                 .matchEntire(command)
                 ?.let {
-                    i = (i + a.size - it.groups[1]!!.value.toInt()) % a.size
+                    i = (i + a.size - it.groupValues[1].toInt()) % a.size
                 }
                 ?: Regex("""x(\d+)/(\d+)""").matchEntire(command)?.let {
-                    val x = it.groups[1]!!.value.toInt()
-                    val y = it.groups[2]!!.value.toInt()
+                    val x = it.groupValues[1].toInt()
+                    val y = it.groupValues[2].toInt()
                     val temp = a[(i + x) % a.size]
                     a[(i + x) % a.size] = a[(i + y) % a.size]
                     a[(i + y) % a.size] = temp
                 }
                 ?: Regex("""p([a-z])/([a-z])""").matchEntire(command)?.let {
-                    val x = it.groups[1]!!.value[0]
-                    val y = it.groups[2]!!.value[0]
+                    val x = it.groupValues[1][0]
+                    val y = it.groupValues[2][0]
                     val q = a.indexOf(x)
                     val r = a.indexOf(y)
                     a[r] = x
@@ -39,20 +33,13 @@ fun main() {
     }
 
     fun part2(initial: String, input: List<String>, iterations: Int): String {
-        val commands = input
+        val matches = input
             .flatMap { list -> list.split(Regex(""",\s*""")) }
-            .map { command ->
-                Regex("""s(\d+)""")
-                    .matchEntire(command)
-                    ?.let {
-                        Foo.S(it.groups[1]!!.value.toInt())
-                    }
-                    ?: Regex("""x(\d+)/(\d+)""").matchEntire(command)?.let {
-                        Foo.X(it.groups[1]!!.value.toInt(), it.groups[2]!!.value.toInt())
-                    }
-                    ?: Regex("""p([a-z])/([a-z])""").matchEntire(command)?.let {
-                        Foo.P(it.groups[1]!!.value[0], it.groups[2]!!.value[0])
-                    }
+            .map { string ->
+                Regex("""(s)(\d+)""")
+                    .matchEntire(string)
+                    ?: Regex("""(x)(\d+)/(\d+)""").matchEntire(string)
+                    ?: Regex("""(p)([a-z])/([a-z])""").matchEntire(string)
                     ?: throw Exception()
             }
 
@@ -61,23 +48,27 @@ fun main() {
 
         repeat(iterations) {
             set.getOrPut(a.joinToString("")) {
-                commands.forEach { command ->
-                    when (command) {
-                        is Foo.S -> {
+                matches.forEach { match ->
+                    when (match.groupValues[1]) {
+                        "s" -> {
                             a.indices
-                                .map { a[(a.size - command.i + it) % a.size] }
+                                .map { a[(a.size - match.groupValues[2].toInt() + it) % a.size] }
                                 .forEachIndexed { index, c -> a[index] = c }
                         }
-                        is Foo.X -> {
-                            val temp = a[command.x % a.size]
-                            a[command.x % a.size] = a[command.y % a.size]
-                            a[command.y % a.size] = temp
+                        "x" -> {
+                            val x = match.groupValues[2].toInt()
+                            val y = match.groupValues[3].toInt()
+                            val temp = a[x % a.size]
+                            a[x % a.size] = a[y % a.size]
+                            a[y % a.size] = temp
                         }
-                        is Foo.P -> {
-                            val q = a.indexOf(command.y)
-                            val r = a.indexOf(command.x)
-                            a[q] = command.x
-                            a[r] = command.y
+                        "p" -> {
+                            val x = match.groupValues[2][0]
+                            val y = match.groupValues[3][0]
+                            val q = a.indexOf(y)
+                            val r = a.indexOf(x)
+                            a[q] = x
+                            a[r] = y
                         }
                     }
                 }
